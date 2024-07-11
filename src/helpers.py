@@ -93,7 +93,7 @@ def compute_mean_and_std_concurrent():
 
     cache_file = 'mean_and_std.pt'
     if os.path.exists(cache_file):
-        print 'Reusing cached mean and std'
+        print('Reusing cached mean and std')
         d = torch.load(cache_file)
 
         return (d['mean'], d['std'])
