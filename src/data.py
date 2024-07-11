@@ -42,13 +42,62 @@ def get_data_loaders(
     # appropriate transforms for that step
     data_transforms = {
         "train": transforms.Compose(
-            # YOUR CODE HERE
+            [
+                # YOUR CODE HERE
+                transforms.Resize(256),
+
+                # take a random crop of the image
+                transforms.RandomCrop(224),
+
+                # horizontal flip with probability 0.5
+                transforms.RandomHorizontalFlip(0.5),
+
+                # data augmentation using  random augment 
+                # https://pytorch.org/vision/main/generated/torchvision.transforms.RandAugment.html
+                # use at most 5 transformations
+                # use default magnitude 9 
+                transforms.RandAugment(
+                    num_ops = 5,
+                    magnitude = 9,
+                    interpolation = transforms.InterpolationMode.BILINEAR,
+
+                ),
+                # transform to tensor
+                transforms.ToTensor(),
+                # use the mean and standard deviation of the dataset 
+                # to normalize the images
+                transforms.Normalize(mean,std)
+            ]   
         ),
         "valid": transforms.Compose(
             # YOUR CODE HERE
+            [
+                # apply only resize and crop 
+                # we do not need augmentation
+                # validation is meant to asses the generalization power
+                # of our model while training and also to spot overfitting
+                transforms.Resize(256),
+                transforms.CenterCrop(224),
+                # convert images to tensor
+                transforms.ToTensor(),
+                # Normalize 
+                # as our training data is normalize, we need to use the same transform 
+                transforms.Normalize(mean,std)
+                
+            ]
         ),
         "test": transforms.Compose(
             # YOUR CODE HERE
+            [
+                transforms.Resize(256),
+                transforms.CenterCrop(224),
+                # convert images to tensor
+                transforms.ToTensor(),
+                # Normalize 
+                # as our training data is normalize, we need to use the same transform 
+                transforms.Normalize(mean,std)
+                
+            ]
         ),
     }
 
@@ -57,6 +106,8 @@ def get_data_loaders(
         base_path / "train",
         # YOUR CODE HERE: add the appropriate transform that you defined in
         # the data_transforms dictionary
+        data_transforms["train"]
+        
     )
     # The validation dataset is a split from the train_one_epoch dataset, so we read
     # from the same folder, but we apply the transforms for validation
@@ -64,6 +115,7 @@ def get_data_loaders(
         base_path / "train",
         # YOUR CODE HERE: add the appropriate transform that you defined in
         # the data_transforms dictionary
+        data_transforms["valid"]
     )
 
     # obtain training indices that will be used for validation
@@ -80,7 +132,7 @@ def get_data_loaders(
 
     # define samplers for obtaining training and validation batches
     train_sampler = torch.utils.data.SubsetRandomSampler(train_idx)
-    valid_sampler  = # YOUR CODE HERE
+    valid_sampler  =torch.utils.data.SubsetRandomSampler(valid_idx)# YOUR CODE HERE
 
     # prepare data loaders
     data_loaders["train"] = torch.utils.data.DataLoader(
@@ -91,12 +143,19 @@ def get_data_loaders(
     )
     data_loaders["valid"] = torch.utils.data.DataLoader(
         # YOUR CODE HERE
+        valid_data,
+        batch_size = batch_size,
+        sampler = valid_sampler,
+        num_workers = num_workers
+        
+        
     )
 
     # Now create the test data loader
     test_data = datasets.ImageFolder(
         base_path / "test",
         # YOUR CODE HERE (add the test transform)
+        data_transforms["test"]
     )
 
     if limit > 0:
@@ -107,6 +166,11 @@ def get_data_loaders(
 
     data_loaders["test"] = torch.utils.data.DataLoader(
         # YOUR CODE HERE (remember to add shuffle=False as well)
+        test_data,
+        batch_size = batch_size,
+        sampler  = test_sampler,
+        num_workers = num_workers,
+        shuffle=False
     )
 
     return data_loaders
