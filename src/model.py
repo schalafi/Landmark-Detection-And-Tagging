@@ -13,6 +13,11 @@ class MyModel(nn.Module):
         # to size appropriately the output of your classifier, and if you use
         # the Dropout layer, use the variable "dropout" to indicate how much
         # to use (like nn.Dropout(p=dropout))
+        self.model = nn.Sequential(
+            # conv+ pooling + relu 
+            # keep the same size after convolution (kernel size = 3 and padding = 1 )
+
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # YOUR CODE HERE: process the input tensor through the
