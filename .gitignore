@@ -1,6 +1,9 @@
 # pytorch 
 *.pt
 
+# landmark dataset 
+landmark_images/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
