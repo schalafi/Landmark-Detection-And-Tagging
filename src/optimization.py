@@ -3,7 +3,9 @@ import torch.nn as nn
 import torch.optim
 
 
-def get_loss(use_cuda=False):
+def get_loss(
+        #use_cuda=False
+        ):
     """
     Get an instance of the CrossEntropyLoss (useful for classification),
     optionally moving it to the GPU if use_cuda is set to True
@@ -13,7 +15,8 @@ def get_loss(use_cuda=False):
     loss = nn.CrossEntropyLoss()
 
     # Move the loss function to the GPU if use_cuda is set to True
-    if use_cuda:
+    if torch.cuda.is_available():
+        print("Using CUDA while defining the loss function.")
         loss = loss.cuda()
 
     return loss
