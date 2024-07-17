@@ -2,6 +2,33 @@ import torch
 import torch.nn as nn
 
 
+
+
+class ResidualBlock(nn.Module):
+    def __init__(self, in_channels, out_channels, stride=1):
+        super(ResidualBlock, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1)
+        self.bn1 = nn.BatchNorm2d(out_channels)
+        self.relu = nn.ReLU(inplace=True)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
+        self.bn2 = nn.BatchNorm2d(out_channels)
+        
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_channels != out_channels:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=stride),
+                nn.BatchNorm2d(out_channels)
+            )
+
+    def forward(self, x):
+        out = self.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+        out += self.shortcut(x)
+        out = self.relu(out)
+        return out
+
+
+
 # define the CNN architecture
 class MyModel(nn.Module):
     def __init__(self, num_classes: int = 1000, dropout: float = 0.7) -> None:
@@ -17,7 +44,7 @@ class MyModel(nn.Module):
         # the Dropout layer, use the variable "dropout" to indicate how much
         # to use (like nn.Dropout(p=dropout))
         self.model = nn.Sequential(
-            # input 224x224 -> 112x112
+            # input 224x224 -> 112x112 output
             self.create_conv_block(
                 in_channels = 3, # RGB channels
                 out_channels = 32,
@@ -27,6 +54,8 @@ class MyModel(nn.Module):
                 in_channels = 32, 
                 out_channels = 64, 
                 dropout = dropout),
+            # Residual Block after second convolutional block
+            ResidualBlock(64, 64),
             # from 56x56 -> 28x28
             self.create_conv_block(
                 in_channels = 64,
@@ -37,6 +66,8 @@ class MyModel(nn.Module):
                 in_channels = 128,
                 out_channels = 256,
                 dropout = dropout),
+            # Residual Block after fourth convolutional block
+            ResidualBlock(256, 256),
             # 14x14 -> 7x7
             # current  shape is 7x7x512
             self.create_conv_block(
@@ -44,15 +75,19 @@ class MyModel(nn.Module):
                 out_channels= 512,
                 dropout = dropout 
             ),
+            
+            #nn.AdaptiveAvgPool2d((1, 1)),  # global Average Pooling
+
             # Convert the matrices to vectors
             nn.Flatten(),
+            
             ### 2 Layer Perceptron
             # First layer
             nn.Linear(in_features = 7*7*512,
                       out_features = 1024),
             nn.BatchNorm1d(1024),
             nn.ReLU(),
-            nn.Dropout(0.1),
+            nn.Dropout(0.3),
             
             # Second layer
             nn.Linear(in_features = 1024,
