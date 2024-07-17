@@ -52,15 +52,12 @@ class MyModel(nn.Module):
                       out_features = 1024),
             nn.BatchNorm1d(1024),
             nn.ReLU(),
-            nn.Dropout(0.5),
+            nn.Dropout(0.1),
             
             # Second layer
             nn.Linear(in_features = 1024,
                       out_features = num_classes ),
-            nn.BatchNorm1d(num_classes),
-            nn.ReLU(),
-            nn.Dropout(0.5)
-            )
+            )            
 
     def create_conv_block(self,in_channels, out_channels,dropout):
 
