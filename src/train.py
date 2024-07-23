@@ -160,7 +160,7 @@ def optimize(data_loaders, model, optimizer, loss, n_epochs, save_path, interact
 
         # Update learning rate, i.e., make a step in the learning rate scheduler
         # YOUR CODE HERE
-        scheduler.step()
+        scheduler.step(metrics = valid_loss)
 
         # Log the losses and the current learning rate
         if interactive_tracking:
